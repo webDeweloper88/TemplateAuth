@@ -23,5 +23,6 @@ export default registerAs('config', () => ({
   app: {
     url: process.env.APPLICATION_URL,
     frontendUrl: process.env.FRONTEND_URL,
+    port: process.env.APP_PORT,
   },
 }));

@@ -30,8 +30,10 @@ async function bootstrap() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api-docs', app, document);
-  const port = configService.get<number>('port');
+  SwaggerModule.setup('api', app, document);
+  const port = configService.get<number>('config.app.port');
   await app.listen(port);
+  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`Swager docs is running on http://localhost:${port}/api`);
 }
 bootstrap();
