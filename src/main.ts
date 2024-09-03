@@ -2,6 +2,7 @@ import { AppModule } from '@modules/app/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,7 +15,22 @@ async function bootstrap() {
       forbidNonWhitelisted: true, // Генерация ошибок для неописанных свойств
     }),
   );
+  // Настройка CORS
+  app.enableCors({
+    origin: ['http://localhost:5173'], // Замените на ваш фронтенд URL
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type, Authorization',
+  });
 
+  // Настройка Swagger документации
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('API документация')
+    .setDescription('Документация для API вашего приложения')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api-docs', app, document);
   const port = configService.get<number>('port');
   await app.listen(port);
 }
