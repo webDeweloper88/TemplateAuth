@@ -36,34 +36,4 @@ export class ResponseUserDto {
     description: 'Активен ли пользователь',
   })
   isActive: boolean;
-
-  @ApiProperty({
-    example: 0,
-    description: 'Количество неудачных попыток подтверждения email',
-  })
-  failedConfirmationAttempts: number;
-
-  @ApiProperty({
-    example: null,
-    description: 'Дата и время последнего запроса на подтверждение email',
-  })
-  lastConfirmationRequest: Date | null;
-
-  @ApiProperty({
-    example: false,
-    description: 'Заблокирован ли пользователь',
-  })
-  isBlocked: boolean;
-
-  @ApiProperty({
-    example: '2024-09-01T19:42:24.010Z',
-    description: 'Дата и время создания пользователя',
-  })
-  createdAt: Date;
-
-  @ApiProperty({
-    example: '2024-09-01T19:42:24.010Z',
-    description: 'Дата и время последнего обновления пользователя',
-  })
-  updatedAt: Date;
 }

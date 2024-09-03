@@ -4,6 +4,10 @@ import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configurations from '@config/configurations';
 import { SequelizeModule } from '@nestjs/sequelize';
+import { User } from '@modules/user/entities/user.entity';
+import { Token } from '@modules/token/entities/token.entity';
+import { UserModule } from '@modules/user/user.module';
+import { AuthModule } from '@modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -25,10 +29,12 @@ import { SequelizeModule } from '@nestjs/sequelize';
           autoLoadModels: true,
           synchronize: true,
           logging: console.log, // Включение логирования
-          models: [],
+          models: [User, Token],
         };
       },
     }),
+    UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
