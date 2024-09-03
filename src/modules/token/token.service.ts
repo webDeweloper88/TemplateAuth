@@ -80,4 +80,23 @@ export class TokenService {
     await this.tokenRepository.destroy({ where: { id: tokenId } });
     console.log(`Token with ID ${tokenId} deleted successfully`);
   }
+
+  async deleteOldRefreshTokens(userId: string): Promise<void> {
+    // Реализуйте логику удаления старых рефреш токенов для данного userId
+    await this.tokenRepository.destroy({
+      where: { userId },
+    });
+  }
+
+  async createRefreshToken(userId: string): Promise<string> {
+    const refreshToken = uuidv4();
+    const expiresAtRefreshToken = new Date();
+    expiresAtRefreshToken.setDate(expiresAtRefreshToken.getDate() + 7);
+    await this.tokenRepository.create({
+      refreshToken,
+      expiresAtRefreshToken,
+      userId,
+    });
+    return refreshToken;
+  }
 }

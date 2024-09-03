@@ -1,5 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/sequelize';
 import { Role, User } from './entities/user.entity';
@@ -83,5 +86,36 @@ export class UserService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
     return user;
+  }
+  async findOneById(userId: string): Promise<User> {
+    try {
+      // Проверяем валидность идентификатора пользователя
+      if (!userId) {
+        throw new BadRequestException('Invalid user ID');
+      }
+
+      // Пытаемся найти пользователя в базе данных
+      const user = await this.userRepository.findByPk(userId);
+
+      // Если пользователь не найден, выбрасываем исключение
+      if (!user) {
+        throw new NotFoundException(AppError.USER_NOT_EXIST);
+      }
+
+      // Возвращаем найденного пользователя
+      return user;
+    } catch (error) {
+      // Обрабатываем ошибки
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
+        // Если ошибка является ожидаемой, мы можем просто повторно выбросить ее
+        throw error;
+      } else {
+        // Для других типов ошибок можно выбросить более общую ошибку
+        throw new Error('An unexpected error occurred');
+      }
+    }
   }
 }

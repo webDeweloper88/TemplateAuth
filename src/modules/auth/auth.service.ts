@@ -15,6 +15,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { AppError } from 'common/constants/error';
 import { addMinutes } from 'date-fns';
 import { TooManyRequestsException } from 'common/constants/exceptions _1/too-many-requests.exception';
+import { LoginDto } from './dto/login.dto';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
@@ -23,6 +26,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly tokenService: TokenService,
     private readonly mailService: MailService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async create(dto: CreateAuthDto): Promise<ResponseUserDto> {
@@ -161,5 +165,47 @@ export class AuthService {
       emailConfirmationToken: null,
       emailConfirmationExpires: null,
     });
+  }
+
+  async login(dto: LoginDto) {
+    const user = await this.userService.findOneByEmail(dto.email);
+
+    if (!user || !(await bcrypt.compare(dto.password, user.password))) {
+      await this.handleFailedAttempt(dto.email);
+      this.logger.warn(`Неудачная попытка входа для email: ${dto.email}`);
+      throw new BadRequestException('Неверный email или пароль');
+    }
+
+    // Логируем успешный вход
+    this.logger.log(`Пользователь ${user.email} успешно вошел в систему`);
+
+    // Удаляем старые рефреш токены
+    await this.tokenService.deleteOldRefreshTokens(user.id);
+
+    const payload = { userId: user.id, email: user.email, role: user.role };
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = await this.tokenService.createRefreshToken(user.id);
+
+    // Возвращаем только нужные поля
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+    };
+
+    return { accessToken, refreshToken, user: userResponse };
+  }
+
+  private async handleFailedAttempt(email: string): Promise<void> {
+    // Логируем неудачную попытку
+    this.logger.warn(`Неудачная попытка входа для email: ${email}`);
+
+    // Замедление ответа на 500 мс
+    await this.delay(500);
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
