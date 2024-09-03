@@ -12,6 +12,7 @@ import { AuthService } from './auth.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { TooManyRequestsException } from 'common/constants/exceptions _1/too-many-requests.exception';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -58,5 +59,10 @@ export class AuthController {
       }
       throw error;
     }
+  }
+
+  @Post('login')
+  async login(@Body() dto: LoginDto) {
+    return this.authService.login(dto);
   }
 }
