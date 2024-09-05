@@ -10,8 +10,8 @@ export default registerAs('config', () => ({
     name: process.env.POSTGRES_DB,
   },
   jwt: {
-    secret: process.env.JWT_SECRET,
-    expiresIn: process.env.JWT_EXPIRY || '2h',
+    secret: process.env.SECRET_JWT,
+    expiresIn: process.env.EXPIRE_JWT || '2h',
   },
   mail: {
     host: process.env.MAIL_HOST,

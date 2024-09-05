@@ -53,9 +53,7 @@ export class AuthService {
       return user;
     } catch (e) {
       Logger.error(`Ошибка при создании пользователя: ${e.message}`);
-      throw new InternalServerErrorException(
-        'Ошибка при создании пользователя',
-      );
+      throw new InternalServerErrorException(AppError.USER_EXIST);
     }
   }
 
@@ -174,6 +172,24 @@ export class AuthService {
       await this.handleFailedAttempt(dto.email);
       this.logger.warn(`Неудачная попытка входа для email: ${dto.email}`);
       throw new BadRequestException('Неверный email или пароль');
+    }
+
+    // Проверяем, подтвержден ли email
+    if (!user.isEmailConfirmed) {
+      this.logger.warn(
+        `Попытка входа для неподтвержденного email: ${dto.email}`,
+      );
+      throw new BadRequestException(
+        'Пожалуйста, подтвердите ваш email перед входом',
+      );
+    }
+
+    // Проверяем блокировку пользователя
+    if (user.isBlocked) {
+      this.logger.warn(
+        `Попытка входа заблокированного пользователя: ${dto.email}`,
+      );
+      throw new ForbiddenException('Ваш аккаунт заблокирован');
     }
 
     // Логируем успешный вход
