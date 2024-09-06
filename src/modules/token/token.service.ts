@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 
 import { v4 as uuidv4 } from 'uuid';
 import { SaveEmailConfirmationTokenDto } from './dto/save-email-confirmation-token';
@@ -81,13 +85,6 @@ export class TokenService {
     console.log(`Token with ID ${tokenId} deleted successfully`);
   }
 
-  async deleteOldRefreshTokens(userId: string): Promise<void> {
-    // Реализуйте логику удаления старых рефреш токенов для данного userId
-    await this.tokenRepository.destroy({
-      where: { userId },
-    });
-  }
-
   async createRefreshToken(userId: string): Promise<string> {
     const refreshToken = uuidv4();
     const expiresAtRefreshToken = new Date();
@@ -98,5 +95,54 @@ export class TokenService {
       userId,
     });
     return refreshToken;
+  }
+
+  ///JWT refresh
+  async updateRefreshToken(userId: string, refreshToken: string) {
+    const tokenRecord = await this.tokenRepository.findOne({
+      where: { userId },
+    });
+
+    if (tokenRecord) {
+      tokenRecord.refreshToken = refreshToken;
+      await tokenRecord.save();
+    } else {
+      // Если записи нет, создаем новую
+      await this.tokenRepository.create({
+        userId,
+        refreshToken,
+      });
+    }
+  }
+
+  // Метод для проверки refreshToken
+  async findRefreshToken(userId: string, refreshToken: string) {
+    const tokenRecord = await this.tokenRepository.findOne({
+      where: { userId, refreshToken },
+    });
+    if (!tokenRecord) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+    return tokenRecord;
+  }
+
+  // Метод для удаления refreshToken
+  async deleteRefreshToken(userId: string) {
+    await this.tokenRepository.destroy({ where: { userId } });
+  }
+
+  // Метод для удаления только refreshToken
+  async clearRefreshToken(userId: string) {
+    const tokenRecord = await this.tokenRepository.findOne({
+      where: { userId },
+    });
+
+    if (!tokenRecord) {
+      throw new NotFoundException('Token record not found');
+    }
+
+    // Обнуляем поле refreshToken
+    tokenRecord.refreshToken = null;
+    await tokenRecord.save();
   }
 }

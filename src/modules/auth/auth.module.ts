@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from 'src/strategies/jwt.strategy';
 import { AuthMiddleware } from './auth.middleware';
+import { jwtConfig } from '@config/jwt.config';
 
 @Module({
   imports: [
@@ -17,10 +18,7 @@ import { AuthMiddleware } from './auth.middleware';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('config.jwt.secret'),
-        signOptions: { expiresIn: '15m' },
-      }),
+      useFactory: jwtConfig,
     }),
   ],
   controllers: [AuthController],
@@ -30,6 +28,11 @@ export class AuthModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(AuthMiddleware)
+      .exclude(
+        { path: 'auth/signup', method: RequestMethod.POST }, // Исключаем маршрут регистрации
+        { path: 'auth/signin', method: RequestMethod.POST }, // Исключаем маршрут логина
+        { path: 'auth/refresh', method: RequestMethod.POST }, // Исключаем маршрут обновления токенов
+      )
       .forRoutes({ path: '*', method: RequestMethod.ALL }); // Применяем middleware ко всем маршрутам
   }
 }

@@ -33,7 +33,7 @@ export class Token extends Model<Token> {
     example: 'refresh_token_example',
   })
   @Column({
-    type: DataType.STRING,
+    type: 'TEXT',
     allowNull: true, // Изменено на allowNull: true
   })
   refreshToken: string;

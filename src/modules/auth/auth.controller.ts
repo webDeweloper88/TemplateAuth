@@ -7,62 +7,53 @@ import {
   Param,
   Post,
   Query,
+  Req,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { TooManyRequestsException } from 'common/constants/exceptions _1/too-many-requests.exception';
 import { LoginDto } from './dto/login.dto';
+import { UserService } from '@modules/user/user.service';
+import { RefreshTokenDto } from '@modules/token/dto/refresh-token.dto';
+import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userService: UserService,
+  ) {}
 
-  @Post()
-  async register(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  @Post('signup')
+  async signup(@Body() createUserDto: any) {
+    const user = await this.userService.create(createUserDto);
+    return this.authService.login(user);
   }
-  @Get('confirm-email')
-  async confirmEmail(
-    @Query('token') token: string,
-  ): Promise<{ message: string }> {
-    if (!token) {
-      throw new BadRequestException('Токен не передан');
+
+  @Post('signin')
+  async signin(@Body() loginDto: any) {
+    const user = await this.authService.validateUser(
+      loginDto.email,
+      loginDto.password,
+    );
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
     }
-
-    await this.authService.confirmEmail(token);
-
-    return { message: 'Email успешно подтвержден' };
+    return this.authService.login(user);
   }
 
-  @Post('send-confirmation-email/:userId')
-  @ApiOperation({
-    summary: 'Отправить письмо с подтверждением электронной почты',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Письмо с подтверждением отправлено успешно.',
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Неверный запрос или превышен лимит запросов.',
-  })
-  async sendConfirmationEmail(
-    @Param('userId') userId: string,
-  ): Promise<{ message: string }> {
-    try {
-      await this.authService.sendConfirmationEmail(userId);
-      return { message: 'Письмо с подтверждением отправлено успешно.' };
-    } catch (error) {
-      if (error instanceof TooManyRequestsException) {
-        throw new BadRequestException(error.message);
-      }
-      throw error;
-    }
+  @Post('refresh')
+  async refresh(@Body() refreshTokenDto: RefreshTokenDto) {
+    return this.authService.refreshToken(refreshTokenDto);
   }
-
-  @Post('login')
-  async login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  // Маршрут для выхода пользователя
+  @UseGuards(JwtAuthGuard) // Доступен только авторизованным пользователям
+  @Post('logout')
+  async logout(@Req() req: any) {
+    const userId = req.user.userId; // Извлекаем userId из токена
+    return this.authService.logout(userId);
   }
 }
