@@ -103,6 +103,16 @@ export class User extends Model {
   })
   isBlocked: boolean;
 
+  @ApiProperty({
+    description: 'Время, до которого аккаунт заблокирован',
+    example: '2024-09-01T17:00:00Z',
+  })
+  @Column({
+    type: DataType.DATE,
+    allowNull: true,
+  })
+  blockUntil: Date;
+
   @HasMany(() => Token)
-  tokens: Token[];
+  tokens: Token[]; // Связь один ко многим с моделью Token
 }

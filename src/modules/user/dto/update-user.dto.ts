@@ -85,4 +85,13 @@ export class UpdateUserDto {
   @IsOptional()
   @IsBoolean({ message: 'isBlocked должен быть булевым значением' })
   readonly isBlocked?: boolean;
+
+  @ApiProperty({
+    example: '2024-09-07T12:00:00Z',
+    description: 'Дата и время, до которого пользователь заблокирован',
+    required: false,
+  })
+  @IsOptional()
+  @IsDate({ message: 'blockUntil должен быть корректной датой' })
+  readonly blockUntil?: Date;
 }

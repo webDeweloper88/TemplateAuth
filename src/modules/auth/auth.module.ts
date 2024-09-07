@@ -32,6 +32,9 @@ export class AuthModule {
         { path: 'auth/signup', method: RequestMethod.POST }, // Исключаем маршрут регистрации
         { path: 'auth/signin', method: RequestMethod.POST }, // Исключаем маршрут логина
         { path: 'auth/refresh', method: RequestMethod.POST }, // Исключаем маршрут обновления токенов
+        { path: 'auth/confirm-email', method: RequestMethod.POST }, // Исключаем подтверждение email
+        { path: 'auth/resend-confirmation', method: RequestMethod.POST }, // Исключаем повторную отправку подтверждения
+        { path: 'auth/logout', method: RequestMethod.POST }, // Исключаем маршрут выхода
       )
       .forRoutes({ path: '*', method: RequestMethod.ALL }); // Применяем middleware ко всем маршрутам
   }
