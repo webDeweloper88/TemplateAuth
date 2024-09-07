@@ -47,7 +47,7 @@ export class TokenService {
   }
 
   async update(
-    userId: string,
+    tokenId: string, // Изменено с userId на tokenId
     updateFields: {
       emailConfirmationToken?: string | null;
       emailConfirmationExpires?: Date | null;
@@ -55,17 +55,19 @@ export class TokenService {
       passwordResetExpires?: Date | null;
     },
   ): Promise<void> {
-    // Получаем ключи из updateFields, которые не равны undefined
-    const validFields = Object.keys(updateFields).filter(
-      (key) => updateFields[key] !== undefined,
-    ) as (keyof Token)[];
+    // Фильтруем только те поля, которые не равны undefined
+    const validFields = Object.fromEntries(
+      Object.entries(updateFields).filter(([_, value]) => value !== undefined),
+    );
 
-    // Обновляем только указанные поля
-    await this.tokenRepository.update(updateFields, {
-      where: { userId },
-      fields: validFields,
-    });
+    // Если есть поля для обновления, выполняем запрос
+    if (Object.keys(validFields).length > 0) {
+      await this.tokenRepository.update(validFields, {
+        where: { id: tokenId }, // Изменено с userId на id токена
+      });
+    }
   }
+
   async findByUserId(userId: string): Promise<Token | null> {
     try {
       // Ищем токен, связанный с указанным userId

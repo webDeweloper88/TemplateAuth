@@ -74,12 +74,14 @@ export class UserService {
     if (dto.lastConfirmationRequest !== undefined)
       user.lastConfirmationRequest = dto.lastConfirmationRequest;
     if (dto.isBlocked !== undefined) user.isBlocked = dto.isBlocked;
+    if (dto.blockUntil !== undefined) user.blockUntil = dto.blockUntil; // Добавлено поле blockUntil
 
     // Сохраняем обновленного пользователя
     await user.save();
 
     return user;
   }
+
   async findById(id: string): Promise<User> {
     const user = await this.userRepository.findByPk(id);
     if (!user) {

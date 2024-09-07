@@ -1,3 +1,4 @@
+import { UserService } from '@modules/user/user.service';
 import {
   Injectable,
   NestMiddleware,
@@ -8,7 +9,10 @@ import { Request, Response, NextFunction } from 'express';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly userService: UserService,
+  ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
     const authHeader = req.headers['authorization'];
@@ -27,6 +31,15 @@ export class AuthMiddleware implements NestMiddleware {
         secret: process.env.JWT_ACCESS_SECRET,
       });
       req.user = decoded;
+
+      // Проверяем, заблокирован ли пользователь
+      // const user = await this.userService.findOneById(decoded.sub);
+      // if (user && user.isBlocked) {
+      //   throw new UnauthorizedException(
+      //     'Account is blocked due to too many failed login attempts',
+      //   );
+      // }
+
       next();
     } catch (err) {
       throw new UnauthorizedException('Invalid or expired token');

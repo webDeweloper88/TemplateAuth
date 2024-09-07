@@ -27,4 +27,9 @@ export default registerAs('config', () => ({
     frontendUrl: process.env.FRONTEND_URL,
     port: process.env.APP_PORT,
   },
+
+  emailToken: {
+    BLOCK_DURATION_HOURS: process.env.BLOCK_DURATION_HOURS,
+    CONFIRMATION_TOKEN_EXPIRY: process.env.CONFIRMATION_TOKEN_EXPIRY,
+  },
 }));
